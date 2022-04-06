@@ -1,0 +1,14 @@
+---
+- name: Restart nginx service
+  listen:
+      - restart relay nginx service
+  ansible.builtin.systemd:
+      name: nginx.service
+      state: restarted
+
+- name: Restart relay webserver
+  listen:
+      - restart relay webserver
+  ansible.builtin.systemd:
+      name: relay.service
+      state: restarted

@@ -1,0 +1,7 @@
+---
+- name: Packages
+  ansible.builtin.apt:
+    pkg:
+      - mosquitto
+
+# TODO configure mosquitto

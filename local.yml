@@ -1,0 +1,16 @@
+---
+- name: Deploy relay
+  hosts: 127.0.0.1
+  connection: local
+  become: false
+  gather_facts: false
+  vars:
+    relay_deno_version: 1.20.4
+    relay_web_repo: https://github.com/tessercat/relay-web.git
+    relay_web_version: dev
+    relay_web_port: 8910
+    relay_ws_port: 8900
+  roles:
+    - {role: deno, tags: [deno]}
+    - {role: web, tags: [web]}
+    - {role: mosquitto, tags: [mosquitto]}
