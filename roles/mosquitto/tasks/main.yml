@@ -1,7 +1,22 @@
 ---
+
+# OS.
+
 - name: Packages
   ansible.builtin.apt:
     pkg:
       - mosquitto
 
-# TODO configure mosquitto
+- name: Configure
+  notify:
+    - restart mosquitto service
+  ansible.builtin.template:
+    src: mosquitto.conf
+    dest: /etc/mosquitto/conf.d/relay.conf
+    mode: 0644
+
+
+# Handlers.
+
+- name: Handlers
+  ansible.builtin.meta: flush_handlers

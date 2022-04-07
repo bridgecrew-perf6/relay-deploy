@@ -1,53 +1,33 @@
 ---
 
-# Assume deno role has already created base dir and user.
+- name: User
+  ansible.builtin.user:
+    name: relay
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Relay directory
+  ansible.builtin.file:
+    path: /opt/relay
+    state: directory
+    mode: 0755
 
 - name: Web directory
   ansible.builtin.file:
     path: /opt/relay/web
     state: directory
-    owner: relay
-    group: relay
+    owner: www-data
+    group: www-data
     mode: 0700
 
-- name: Web
-  notify:
-    - restart relay webserver
+- name: Repo
   become: true
-  become_user: relay
+  become_user: www-data
   ansible.builtin.git:
     repo: "{{ relay_web_repo }}"
     dest: /opt/relay/web
     version: "{{ relay_web_version }}"
     force: true
-
-# TODO static files.
-
-- name: Settings
-  notify:
-    - restart relay webserver
-  become: true
-  become_user: relay
-  ansible.builtin.template:
-    src: settings.js
-    dest: /opt/relay/web/var/settings.js
-    owner: relay
-    group: relay
-    mode: 0600
-
-- name: Service file
-  notify:
-    - restart relay webserver
-  ansible.builtin.template:
-    src: service
-    dest: /etc/systemd/system/relay.service
-    mode: 0644
-
-- name: Service state
-  ansible.builtin.systemd:
-    name: relay.service
-    enabled: true
-    daemon-reload: true
 
 - name: Nginx
   notify:
