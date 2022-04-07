@@ -1,11 +1,5 @@
 ---
 
-- name: User
-  ansible.builtin.user:
-    name: relay
-    system: true
-    shell: /usr/sbin/nologin
-
 - name: Relay directory
   ansible.builtin.file:
     path: /opt/relay
