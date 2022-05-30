@@ -8,6 +8,8 @@
     relay_web_repo: https://github.com/tessercat/relay-web.git
     relay_web_version: dev
     relay_ws_port: 8910
+    relay_ejabberd_version: 21.12
+    relay_ejabberd_rev: 0
   roles:
     - {role: web, tags: [web]}
-    - {role: mosquitto, tags: [mosquitto]}
+    - {role: ejabberd, tags: [ejabberd]}
