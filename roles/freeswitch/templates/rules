@@ -1,0 +1,2 @@
+-A INPUT --protocol tcp --dport {{ relay_inbound_sip_port }} -j ACCEPT
+-A INPUT --protocol tcp --match multiport --dports {{ relay_rtp_ports_begin }}:{{ relay_rtp_ports_end }} -j ACCEPT

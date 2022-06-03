@@ -1,0 +1,15 @@
+---
+
+- name: Restart netfilter
+  listen:
+    - restart netfilter service
+  ansible.builtin.systemd:
+    name: netfilter-persistent.service
+    state: restarted
+
+- name: Restart service
+  listen:
+    - restart freeswitch service
+  ansible.builtin.systemd:
+    name: freeswitch.service
+    state: restarted

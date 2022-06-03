@@ -5,11 +5,11 @@
   become: false
   gather_facts: false
   vars:
-    relay_web_repo: https://github.com/tessercat/relay-web.git
-    relay_web_version: dev
-    relay_ws_port: 8910
-    relay_ejabberd_version: 21.12
-    relay_ejabberd_rev: 0
+    relay_conf_repo: https://github.com/tessercat/relay-conf.git
+    relay_conf_version: dev
+    relay_inbound_sip_port: 18061
+    relay_outbound_sip_port: 18062
+    relay_rtp_ports_begin: 18100
+    relay_rtp_ports_end: 18200
   roles:
-    - {role: web, tags: [web]}
-    - {role: ejabberd, tags: [ejabberd]}
+    - {role: freeswitch, tags: [freeswitch]}

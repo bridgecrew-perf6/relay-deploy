@@ -1,0 +1,44 @@
+#!/bin/bash
+# Write Let's Encrypt files to FreeSWITCH-friendly tls/wss files
+# and email host admin unless the first arg is "silent".
+
+# Generate new temp file.
+HOSTNAME={{ hostname }}
+CERT_DIR=/etc/letsencrypt/live/$HOSTNAME
+TLS_DIR=/etc/freeswitch/tls
+mkdir -p $TLS_DIR && chown freeswitch.freeswitch $TLS_DIR
+TMP=$TLS_DIR/tmp.pem
+cat $CERT_DIR/fullchain.pem $CERT_DIR/privkey.pem > $TMP
+
+# Write tls.pem.
+OUT=$TLS_DIR/tls.pem
+TLS_DIFF=$(diff -q $TMP $OUT 2>&1)
+if [ -n "$TLS_DIFF" ]; then
+    cp $TMP $OUT
+    chmod 0600 $OUT
+    chown freeswitch.freeswitch $OUT
+fi
+
+# Write wss.pem.
+OUT=$TLS_DIR/wss.pem
+WSS_DIFF=$(diff -q $TMP $OUT 2>&1)
+if [ -n "$WSS_DIFF" ]; then
+    cp $TMP $OUT
+    chmod 0600 $OUT
+    chown freeswitch.freeswitch $OUT
+fi
+
+# Alert admin if either changes.
+if [ -n "$TLS_DIFF" ] || [ -n "$WSS_DIFF" ]; then
+    touch $TLS_DIR/restart
+    if [ "$1" != 'silent' ]; then
+        ADDR="{{ admin_email }}"
+        BODY="Let's Encrypt cert renewed. Restart FreeSWITCH by hand."
+        SUBJECT="[$HOSTNAME] FreeSWITCH cert update"
+        echo "$BODY" | mail -s "$SUBJECT" "$ADDR"
+    fi
+fi
+
+# Cleanup.
+rm $TMP
+#/usr/bin/env | /usr/bin/fold -w80 > /tmp/post-mail.txt

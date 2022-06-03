@@ -1,0 +1,203 @@
+---
+
+# Firewall
+
+- name: IPv4 rules
+  notify:
+    - restart netfilter service
+  ansible.builtin.template:
+    src: rules
+    dest: /opt/firewall/config/rules/v4/800-relay
+    mode: 0644
+
+- name: IPv6 rules
+  notify:
+    - restart netfilter service
+  ansible.builtin.template:
+    src: rules
+    dest: /opt/firewall/config/rules/v6/800-relay
+    mode: 0644
+
+
+# Debian release and machine.
+
+- name: Release package
+  ansible.builtin.apt:
+    name: lsb-release
+    state: present
+
+- name: Release
+  ansible.builtin.command:
+    cmd: /usr/bin/lsb_release -sc
+  register: debian_release
+  changed_when: false
+  # Repo
+
+- name: Machine
+  ansible.builtin.command:
+    cmd: /usr/bin/uname -m
+  register: uname_machine
+  changed_when: false
+  # Repo
+
+
+# Packages.
+
+- name: Apt key
+  ansible.builtin.get_url:
+    url: "https://freeswitch.signalwire.com/repo/deb/debian-release/\
+          signalwire-freeswitch-repo.gpg"
+    url_username: signalwire
+    url_password: "{{ signalwire_token }}"
+    dest: /usr/share/keyrings/signalwire-freeswitch-repo.gpg
+    mode: 0644
+
+- name: FreeSWITCH amd64
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/signalwire-freeswitch-repo.gpg] \
+           https://{{ signalwire_token_name }}:{{ signalwire_token }}@\
+           freeswitch.signalwire.com/repo/deb/debian-release/ \
+           {{ debian_release.stdout }} main"
+  when: uname_machine.stdout == "x86_64"
+
+- name: FreeSWITCH arm32
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/signalwire-freeswitch-repo.gpg] \
+           https://{{ signalwire_token_name }}:{{ signalwire_token }}@\
+           freeswitch.signalwire.com/repo/deb/rpi/debian-release/ \
+           {{ debian_release.stdout }} main"
+  when: uname_machine.stdout == "armv7l"
+
+- name: Packages
+  notify:
+    - restart freeswitch service
+  ansible.builtin.apt:
+    pkg:
+
+      # Service
+      - freeswitch
+      - freeswitch-systemd
+
+      # Loggers
+      - freeswitch-mod-console
+      - freeswitch-mod-logfile
+
+      # Event handlers
+      - freeswitch-mod-event-socket
+
+      # Applications
+      - freeswitch-mod-commands
+      - freeswitch-mod-dptools
+
+      # Dialplan Interfaces
+      - freeswitch-mod-dialplan-xml
+
+      # Endpoints
+      - freeswitch-mod-sofia
+
+      # Configuration
+      - freeswitch-timezones
+
+
+# Service
+
+- name: Service
+  ansible.builtin.copy:
+    src: service
+    dest: /etc/systemd/system/freeswitch.service
+    mode: 0644
+
+
+# Configuration.
+
+- name: Stat config repo
+  ansible.builtin.stat:
+    path: /etc/freeswitch/.git
+  register: config_repo
+  # Clean default config
+
+- name: Clean default config
+  ansible.builtin.file:
+    path: /etc/freeswitch
+    state: absent
+  when: not config_repo.stat.exists
+
+- name: Directory for config
+  ansible.builtin.file:
+    path: /etc/freeswitch
+    state: directory
+    owner: freeswitch
+    group: freeswitch
+    mode: 0755
+
+- name: Repo
+  notify:
+    - restart freeswitch service
+  become: true
+  become_user: freeswitch
+  ansible.builtin.git:
+    repo: "{{ relay_conf_repo }}"
+    version: "{{ relay_conf_version }}"
+    dest: /etc/freeswitch
+    depth: 1
+    force: true
+
+- name: Vars
+  notify:
+    - restart freeswitch service
+  become: true
+  become_user: freeswitch
+  ansible.builtin.template:
+    src: vars.xml
+    dest: /etc/freeswitch/vars.xml
+    mode: 0644
+
+- name: Timezones
+  ansible.builtin.file:
+    src: /usr/share/freeswitch/tz/timezones.conf.xml
+    dest: /etc/freeswitch/configuration/timezones.conf.xml
+    owner: freeswitch
+    group: freeswitch
+    state: link
+
+
+# TLS cert.
+
+- name: Certbot script
+  notify:
+    - restart freeswitch service
+  ansible.builtin.template:
+    src: hook
+    dest: /etc/letsencrypt/renewal-hooks/deploy/freeswitch
+    mode: 0700
+  register: freeswitch_certbot
+  # Run script
+
+- name: Run script
+  ansible.builtin.command:
+    cmd: /etc/letsencrypt/renewal-hooks/deploy/freeswitch silent
+  when: freeswitch_certbot is changed
+
+- name: Stat flag
+  ansible.builtin.stat:
+    path: /etc/freeswitch/tls/restart
+  register: freeswitch_flag
+  # Notify restart
+
+- name: Notify restart
+  notify:
+    - restart freeswitch service
+  ansible.builtin.command:
+    cmd: /bin/true
+  when: freeswitch_flag.stat.exists
+
+- name: Remove flag
+  ansible.builtin.file:
+    path: /etc/freeswitch/tls/restart
+    state: absent
+
+
+# Handlers.
+
+- name: Handlers
+  ansible.builtin.meta: flush_handlers
