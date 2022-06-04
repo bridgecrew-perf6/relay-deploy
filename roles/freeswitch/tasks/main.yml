@@ -128,7 +128,7 @@
     state: directory
     owner: freeswitch
     group: freeswitch
-    mode: 0755
+    mode: 0700
 
 - name: Repo
   notify:

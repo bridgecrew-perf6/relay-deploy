@@ -4,59 +4,51 @@ on the
 [stack-deploy](https://github.com/tessercat/stack-deploy)
 stack.
 
-The config has two SIP profiles/interfaces:
 
-- a single SIP/TLS and SRTP-only inbound profile
-  that accepts all inbound calls.
-- a single outbound profile
-  and no-register,
-  username/password,
-  SIP/TLS and SRTP-only gateway.
+# SIP/RTP iptables rules
 
-Deploy vars define
-Inbound/outbound SIP ports,
-RTP ports
-and gateway credentials.
+Configure
+iptables rules
+to allow TCP connections
+to the inbound profile's port and RTP ports
+for both IPv4 and IPv6.
 
-The outbound gateway
-works with VoIP.ms,
-which expects RPID caller ID.
-I haven't tested other providers.
+The outbound SIP profile
+isn't meant to receive calls,
+so don't configure an iptables rule.
+Once a gateway establishes an outbound connection
+to a trunk provider,
+the stack's conntrack `ESTABLISHED` rule
+allows inbound traffic on the trunk connection
+for five days.
 
-By default,
-the dialplan rejects all inbound calls.
-Copy and rename the `diaplan/relay-template.xml` file
-to `dialplan/relay.xml.d/`
-for each dialed number
-to relay through the gateway,
-replacing template values for
-`dialed_number` and `destination_number`.
 
-Iptables rules
-allow all access
-to the inbound profile's port
-and to the entire RTP port range.
+# FreeSWITCH
 
-To call through the gateway,
-call `<dialed_number>@<relay_domain>:<relay_inbound_sip_port>`
-with a SIP/TLS and SRTP-capable client,
-and if there's an extension matching `<dialed_number>`,
-the call goes through the gateway
-to `<destination_number>`.
+## Install
 
-The inbound profile
-forces SIP/TLS and SRTP on inbound legs.
+Install a very bare bones FreeSWITCH
+from the SignalWire repositories.
 
-The template and outbound profile/gateway
-force SIP/TLS and SRTP on outbound legs.
+A SignalWire Personal Access Token
+name and token
+must be configured in deploy vars.
 
-The outbound profile/gateway
-authenticates calls,
-but the config provides no directory,
-so incoming calls to the profile will fail.
-Also, the deploy role
-doesn't install iptables rules
-to allow access to the outbound profile's port,
-though the stack's conntrack `ESTABLISHED` rule
-allows inbound traffic from the gateway
-for up five days.
+Install `x86_64` or `armv7l`
+based on lsb release.
+
+
+## Configure
+
+Install the
+[relay-conf](https://github.com/tessercat/relay-conf)
+FreeSWITCH configuration repo in `/etc/freeswitch/`,
+install `vars.xml` and link timezone config.
+
+
+## TLS certs
+
+Install a Let's Encrypt renewal hook script
+that writes new files to `/etc/freeswitch/tls/`
+and emails the admin that FreeSWITCH
+must be restarted.
