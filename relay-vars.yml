@@ -8,9 +8,3 @@ relay_domain: ""
 # SignalWire personal access token. Required.
 signalwire_token_name: ""
 signalwire_token: ""
-
-# Outbound PSTN gateway vars.
-relay_gateway_realm: ""
-relay_gateway_proxy: ""
-relay_gateway_username: ""
-relay_gateway_password: ""

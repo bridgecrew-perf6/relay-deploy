@@ -1,10 +1,6 @@
 <include>
   <X-PRE-PROCESS cmd="set" data="inbound_sip_port={{ relay_inbound_sip_port }}"/>
   <X-PRE-PROCESS cmd="set" data="outbound_sip_port={{ relay_outbound_sip_port }}"/>
-  <X-PRE-PROCESS cmd="set" data="gateway_username={{ relay_gateway_username }}"/>
-  <X-PRE-PROCESS cmd="set" data="gateway_password={{ relay_gateway_password }}"/>
-  <X-PRE-PROCESS cmd="set" data="gateway_proxy={{ relay_gateway_proxy }}"/>
-  <X-PRE-PROCESS cmd="set" data="gateway_realm={{ relay_gateway_realm }}"/>
   <X-PRE-PROCESS cmd="set" data="rtp_ports_begin={{ relay_rtp_ports_begin }}"/>
   <X-PRE-PROCESS cmd="set" data="rtp_ports_end={{ relay_rtp_ports_end }}"/>
 </include>
