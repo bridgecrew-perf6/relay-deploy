@@ -1,0 +1,5 @@
+# ~/.profile: executed by Bourne-compatible login shells.
+if [ "$BASH" ]; then
+  export PROMPT_DIRTRIM=2
+  alias ll='ls -lh'
+fi

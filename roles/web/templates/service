@@ -1,0 +1,15 @@
+[Unit]
+Description=relay service
+After=network-online.target
+
+[Service]
+User=relay
+Group=relay
+WorkingDirectory=/opt/relay/web
+ExecStart=/opt/relay/web/var/venv/bin/uvicorn --port {{ relay_web_port }} app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+SyslogIdentifier=relay
+
+[Install]
+WantedBy=multi-user.target

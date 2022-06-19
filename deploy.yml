@@ -11,5 +11,10 @@
     relay_outbound_sip_port: 18062
     relay_rtp_ports_begin: 18100
     relay_rtp_ports_end: 18200
+    relay_web_repo: https://github.com/tessercat/relay-web.git
+    relay_web_version: dev
+    relay_web_port: 18080
+    relay_verto_port: 18081
   roles:
     - {role: freeswitch, tags: [freeswitch]}
+    - {role: web, tags: [web]}

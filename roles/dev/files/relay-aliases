@@ -1,0 +1,10 @@
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PROMPT_DIRTRIM=2
+alias ll='ls -lh'
+alias vgrep="grep -rl $1 --exclude-dir=var/"
+function vfind() {
+    find . -name "$1" -not -path "./var/*"
+}
+cd /opt/relay/web

@@ -52,3 +52,10 @@ Install a Let's Encrypt renewal hook script
 that writes new files to `/etc/freeswitch/tls/`
 and emails the admin that FreeSWITCH
 must be restarted.
+
+
+# Web app
+
+Install a simple Starlette service
+that serves a FreeSWITCH WebRTC verto client
+to browsers.

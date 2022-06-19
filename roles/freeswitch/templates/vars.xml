@@ -4,4 +4,5 @@
   <X-PRE-PROCESS cmd="set" data="outbound_sip_port={{ relay_outbound_sip_port }}"/>
   <X-PRE-PROCESS cmd="set" data="rtp_ports_begin={{ relay_rtp_ports_begin }}"/>
   <X-PRE-PROCESS cmd="set" data="rtp_ports_end={{ relay_rtp_ports_end }}"/>
+  <X-PRE-PROCESS cmd="set" data="verto_port={{ relay_verto_port }}"/>
 </include>

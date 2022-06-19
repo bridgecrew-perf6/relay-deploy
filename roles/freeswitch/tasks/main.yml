@@ -94,6 +94,8 @@
 
       # Endpoints
       - freeswitch-mod-sofia
+      - freeswitch-mod-rtc
+      - freeswitch-mod-verto
 
       # Configuration
       - freeswitch-timezones

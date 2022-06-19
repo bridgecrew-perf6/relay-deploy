@@ -1,0 +1,64 @@
+---
+
+- name: Relay user
+  user:
+      name: relay
+      shell: /bin/bash
+
+- name: Relay user vim
+  become: true
+  become_user: relay
+  git:
+      repo: https://github.com/tessercat/dotvim.git
+      dest: /home/relay/.vim
+      version: dev
+      force: true
+
+- name: Relay user inputrc
+  file:
+      src: /home/relay/.vim/inputrc
+      dest: /home/relay/.inputrc
+      owner: relay
+      group: relay
+      state: link
+
+- name: Relay user aliases
+  copy:
+      src: relay-aliases
+      dest: /home/relay/.bash_aliases
+      owner: relay
+      group: relay
+      mode: 0644
+
+
+# FreeSWITCH user.
+
+- name: FreeSWITCH user
+  user:
+      name: freeswitch
+      shell: /bin/bash
+
+- name: FreeSWITCH user vim
+  become: true
+  become_user: freeswitch
+  git:
+      repo: https://github.com/tessercat/dotvim.git
+      dest: /var/lib/freeswitch/.vim
+      version: dev
+      force: true
+
+- name: FreeSWITCH user inputrc
+  file:
+      src: /var/lib/freeswitch/.vim/inputrc
+      dest: /var/lib/freeswitch/.inputrc
+      owner: freeswitch
+      group: freeswitch
+      state: link
+
+- name: FreeSWITCH user profile
+  copy:
+      src: fs-profile
+      dest: /var/lib/freeswitch/.profile
+      owner: freeswitch
+      group: freeswitch
+      mode: 0644

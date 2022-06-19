@@ -1,0 +1,132 @@
+---
+
+# OS.
+
+- name: Packages
+  ansible.builtin.apt:
+    pkg:
+      - git
+      - python3-venv
+
+- name: User
+  ansible.builtin.user:
+    name: relay
+    system: true
+    shell: /usr/sbin/nologin
+
+
+# Starlette web app.
+
+- name: Relay directory
+  ansible.builtin.file:
+    path: /opt/relay
+    state: directory
+    mode: 0755
+
+- name: Web directory
+  ansible.builtin.file:
+    path: /opt/relay/web
+    state: directory
+    owner: relay
+    group: relay
+    mode: 0700
+
+- name: Repo
+  become: true
+  become_user: relay
+  ansible.builtin.git:
+    repo: "{{ relay_web_repo }}"
+    dest: /opt/relay/web
+    version: "{{ relay_web_version }}"
+    force: true
+  register: relay_git
+  # Clean
+  # Upgrade
+  # Requirements
+
+
+# Static files
+
+- name: Clean
+  ansible.builtin.file:
+      path: /opt/relay/static
+      state: absent
+  when: relay_git is changed
+
+- name: Stat static
+  ansible.builtin.stat:
+      path: /opt/relay/static
+  register: relay_static
+  # Static.
+
+- name: Static
+  ansible.builtin.copy:
+      src: /opt/relay/web/static
+      dest: /opt/relay
+      remote_src: true
+      owner: www-data
+      group: www-data
+      mode: 0700
+  when: not relay_static.stat.exists
+
+
+# App venv.
+
+- name: Venv
+  notify:
+      - restart relay service
+  ansible.builtin.command:
+      cmd: python3 -m venv venv
+  args:
+      chdir: /opt/relay/web/var
+      creates: /opt/relay/web/var/venv
+  register: relay_venv
+  # Upgrade
+  # Requirements
+
+- name: Upgrade
+  ansible.builtin.command:
+      cmd: /opt/relay/web/var/venv/bin/pip install --upgrade \
+        pip setuptools wheel pip-tools
+  when: relay_git is changed or relay_venv is changed
+
+- name: Requirements
+  ansible.builtin.command:
+      cmd: /opt/relay/web/var/venv/bin/pip-sync requirements.txt
+  args:
+      chdir: /opt/relay/web
+  when: relay_git is changed or relay_venv is changed
+
+
+# Nginx.
+
+- name: Nginx
+  notify:
+    - restart relay nginx service
+  ansible.builtin.template:
+    src: nginx.conf
+    dest: /etc/nginx/conf.d/relay.conf
+    mode: 0644
+
+
+# Systemd service.
+
+- name: Relay service file
+  notify:
+      - restart relay service
+  ansible.builtin.template:
+      src: service
+      dest: /etc/systemd/system/relay.service
+      mode: 0644
+
+- name: Relay service status
+  ansible.builtin.systemd:
+      name: relay.service
+      enabled: true
+      daemon-reload: true
+
+
+# Handlers.
+
+- name: Handlers
+  ansible.builtin.meta: flush_handlers
